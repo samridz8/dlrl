@@ -1,0 +1,71 @@
+import tensorflow as tf
+from tensorflow.keras import layers, models
+import numpy as np
+import matplotlib.pyplot as plt
+from datasets import load_dataset
+
+# Load dataset
+dataset = load_dataset("p2pfl/CIFAR10", streaming=True)
+
+train = list(dataset["train"].take(5000))
+test = list(dataset["test"].take(1000))
+
+x_train = np.array([x["image"] for x in train]) / 255.0
+y_train = np.array([x["label"] for x in train])
+
+x_test = np.array([x["image"] for x in test]) / 255.0
+y_test = np.array([x["label"] for x in test])
+
+class_names = [
+    'Airplane', 'Automobile', 'Bird', 'Cat', 'Deer',
+    'Dog', 'Frog', 'Horse', 'Ship', 'Truck'
+]
+
+print("Training:", x_train.shape, y_train.shape)
+print("Testing :", x_test.shape, y_test.shape)
+
+# CNN
+model = models.Sequential([
+    layers.Conv2D(32, (3, 3), activation='relu', input_shape=(32, 32, 3)),
+    layers.MaxPooling2D((2, 2)),
+    layers.Conv2D(64, (3, 3), activation='relu'),
+    layers.MaxPooling2D((2, 2)),
+    layers.Conv2D(128, (3, 3), activation='relu'),
+    layers.Flatten(),
+    layers.Dense(128, activation='relu'),
+    layers.Dropout(0.3),
+    layers.Dense(10, activation='softmax')
+])
+
+model.compile(
+    optimizer='adam',
+    loss='sparse_categorical_crossentropy',
+    metrics=['accuracy']
+)
+
+# Train
+model.fit(
+    x_train,
+    y_train,
+    epochs=10,
+    validation_data=(x_test, y_test),
+    verbose=2
+)
+
+# Accuracy
+loss, acc = model.evaluate(x_test, y_test, verbose=0)
+print(f"\nTest Accuracy: {acc:.3f}")
+
+# Prediction
+pred = np.argmax(
+    model.predict(x_test, verbose=0),
+    axis=1
+)
+
+plt.imshow(x_test[0])
+plt.title(
+    f"Predicted: {class_names[pred[0]]}, "
+    f"Actual: {class_names[y_test[0]]}"
+)
+plt.axis('off')
+plt.show()
