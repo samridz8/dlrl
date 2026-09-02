@@ -1,0 +1,66 @@
+import pandas as pd
+import numpy as np
+import random
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.datasets import load_iris
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.utils import to_categorical
+import matplotlib.pyplot as plt
+
+# Dataset
+iris = load_iris()
+df = pd.DataFrame(iris.data, columns=iris.feature_names)
+df["species"] = iris.target_names[iris.target]
+
+X = df.iloc[:, :4].values
+encoder = LabelEncoder()
+y = to_categorical(encoder.fit_transform(df["species"]))
+
+# Preprocessing
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=.2, random_state=42
+)
+
+scaler = StandardScaler()
+X_train, X_test = scaler.fit_transform(X_train), scaler.transform(X_test)
+
+# Model
+model = Sequential([
+    Dense(16, "relu", input_dim=4),
+    Dense(8, "relu"),
+    Dense(3, "softmax")
+])
+
+model.compile(
+    optimizer="adam",
+    loss="categorical_crossentropy",
+    metrics=["accuracy"]
+)
+
+model.fit(X_train, y_train, epochs=50, batch_size=8, verbose=0)
+model.summary()
+
+# Prediction
+pred = np.argmax(model.predict(X_test, verbose=0), 1)
+true = np.argmax(y_test, 1)
+
+# Results
+for i, (p, t) in enumerate(zip(pred, true)):
+    print(
+        f"Sample {i+1}: Predicted={encoder.classes_[p]} | "
+        f"Actual={encoder.classes_[t]} --> {'Right' if p == t else 'Wrong'}"
+    )
+
+print(f"\nFinal Accuracy: {(pred == true).mean() * 100:.2f}%")
+
+# Confusion Matrix
+ConfusionMatrixDisplay(
+    confusion_matrix(true, pred),
+    display_labels=encoder.classes_
+).plot(cmap="Blues")
+
+plt.title("Confusion Matrix")
+plt.show()
