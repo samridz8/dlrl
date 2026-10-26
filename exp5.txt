@@ -8,7 +8,7 @@ from tensorflow.keras.layers import Embedding, LSTM, Dense
 
 data = fetch_20newsgroups(subset='all')
 t = Tokenizer(num_words=10000)
-t.fit_on_texts(data.data)te
+t.fit_on_texts(data.data)
 
 X = pad_sequences(t.texts_to_sequences(data.data), maxlen=300)
 y = to_categorical(data.target)
