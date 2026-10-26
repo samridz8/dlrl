@@ -1,0 +1,44 @@
+import random
+
+class GridWorld:
+    def __init__(self):
+        self.start, self.goal = (0,0), (4,4)
+        p = [(i,j) for i in range(5) for j in range(5)
+             if (i,j) not in (self.start,self.goal)]
+        self.obstacles = random.sample(p,3)
+        self.pos = self.start
+
+    def render(self):
+        for i in range(5):
+            print(' '.join('A' if (i,j)==self.pos else
+                           'G' if (i,j)==self.goal else
+                           'O' if (i,j) in self.obstacles else '.'
+                           for j in range(5)))
+        print()
+
+    def step(self, action):
+        moves = {'up':(-1,0),'down':(1,0),
+                 'left':(0,-1),'right':(0,1)}
+        if action not in moves:
+            return -0.01, False
+        x,y = self.pos
+        dx,dy = moves[action]
+        new = (x+dx,y+dy)
+        if 0<=new[0]<5 and 0<=new[1]<5:
+            self.pos = new
+        if self.pos == self.goal:
+            return 1, True
+        if self.pos in self.obstacles:
+            return -1, True
+        return -0.01, False
+
+env = GridWorld()
+done = False
+env.render()
+
+while not done:
+    reward, done = env.step(input("Move: ").lower())
+    print("Reward:", reward)
+    env.render()
+
+print("You won!" if reward == 1 else "Game Over!")
