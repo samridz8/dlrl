@@ -12,7 +12,7 @@ t.fit_on_texts(data.data)
 
 X = pad_sequences(t.texts_to_sequences(data.data), maxlen=300)
 y = to_categorical(data.target)
-r
+
 Xtr, Xte, ytr, yte = train_test_split(X, y, test_size=0.2, random_state=42)
 
 model = Sequential([Embedding(10000, 128), LSTM(128), Dense(y.shape[1], activation='softmax')])
