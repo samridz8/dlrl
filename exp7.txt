@@ -1,0 +1,28 @@
+from google.colab import files
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.applications import ResNet50
+from tensorflow.keras.applications.resnet50 import preprocess_input
+from tensorflow.keras.layers import Dense, GlobalAveragePooling2D
+from tensorflow.keras.models import Model
+import zipfile
+
+files.upload()
+
+with zipfile.ZipFile("cats_dogs_resnet50_dataset.zip") as z:
+    z.extractall("/content")
+
+gen = ImageDataGenerator(preprocessing_function=preprocess_input)
+train = gen.flow_from_directory("/content/data/train", target_size=(224,224))
+val = gen.flow_from_directory("/content/data/val", target_size=(224,224), shuffle=False)
+
+base = ResNet50(weights="imagenet", include_top=False, input_shape=(224,224,3))
+base.trainable = False
+
+x = GlobalAveragePooling2D()(base.output)
+out = Dense(train.num_classes, activation="softmax")(Dense(128, activation="relu")(x))
+
+model = Model(base.input, out)
+model.compile("adam", "categorical_crossentropy", metrics=["accuracy"])
+model.fit(train, validation_data=val, epochs=5)
+
+print("Accuracy:", model.evaluate(val)[1])
