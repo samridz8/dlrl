@@ -1,0 +1,23 @@
+from sklearn.datasets import fetch_20newsgroups
+from sklearn.model_selection import train_test_split
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.utils import to_categorical
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Embedding, LSTM, Dense
+
+data = fetch_20newsgroups(subset='all')
+t = Tokenizer(num_words=10000)
+t.fit_on_texts(data.data)te
+
+X = pad_sequences(t.texts_to_sequences(data.data), maxlen=300)
+y = to_categorical(data.target)
+r
+Xtr, Xte, ytr, yte = train_test_split(X, y, test_size=0.2, random_state=42)
+
+model = Sequential([Embedding(10000, 128), LSTM(128), Dense(y.shape[1], activation='softmax')])
+
+model.compile('adam', 'categorical_crossentropy', metrics=['accuracy'])
+model.fit(Xtr, ytr, epochs=5, batch_size=64, validation_split=0.1)
+
+print("Test Accuracy:", model.evaluate(Xte, yte, verbose=0)[1])
